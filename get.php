@@ -1,23 +1,15 @@
 <?php
 
-date_default_timezone_set("Asia/Jakarta");
-
 include 'config.php';
+include 'fun.php';
 
-$curl = curl_init();
+$parameter = array(
+	"allowed_updates" => ["message"],
+);
 
-$get_updates = BASE_URL . BOT_TOKEN . "/getUpdates";
+$data = sendData("/getUpdates", $parameter);
 
-curl_setopt($curl, CURLOPT_URL, $get_updates);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-
-$exec = curl_exec($curl);
-
-$response = json_decode($exec, TRUE);
-
-curl_close($curl);
-
-$data = $response["result"];
+echo "<br>";
 
 $connect = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_DATABASE);
 $connect -> set_charset("utf8mb4");
@@ -38,11 +30,6 @@ for ($index = 0; $index < count($data); $index++) {
 	$caption = $data[$index]['message']['caption'] ?? NULL;
 	$command = $data[$index]['message']['entities'][0]['type'] ?? NULL;
 	$bot = $command == 'bot_command';
-	/*
-	$from_id = $data[$index]['message']['from']['id'] ?? NULL;
-	$from_bot = $data[$index]['message']['from']['is_bot'] ?? NULL;
-	$from_username = "@" . $data[$index]['message']['from']['username'] ?? NULL;
-	*/
 	$reply_id = 0;
 	$reply_key = '-reply!';
 	if (!$bot && (isset($text) || isset($photo) || isset($video) || isset($animation) || isset($audio))) {
@@ -58,13 +45,6 @@ for ($index = 0; $index < count($data); $index++) {
 		echo $connect -> query($insert) ? "DONE! ($message_id)" : $connect -> error;
 		echo "<br>";
 	}
-	/*
-	} else if ($bot && $text == '/start' && !$from_bot) {
-		$insert = "INSERT INTO $table_user VALUES ($from_id, '$from_username')";
-		echo $connect -> query($insert) ? "DONE! ($message_id)" : $connect -> error;
-		echo "<br>";
-	}
-	*/
 }
 
 $connect -> close();
